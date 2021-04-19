@@ -6,7 +6,9 @@
 
 ![Топология](https://github.com/darkmikos/otus.ru/blob/master/lab02/topology.png)
 
+## Connection diagram
 
 
 
+![connection diagram](https://github.com/darkmikos/otus.ru/blob/master/lab02/connection_diagram_pt.png)
 
