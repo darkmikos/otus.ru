@@ -129,7 +129,7 @@
 
    ![ping_pc-a](https://github.com/darkmikos/otus.ru/blob/master/lab02/ping_pc-a.png)
 
-4. С компьютера PC-B запустила команду tracert на адрес PC-A.
+4. С компьютера PC-B запустил команду tracert на адрес PC-A.
 
 Результат теста с компьютера PC-B:
 
