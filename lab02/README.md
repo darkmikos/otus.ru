@@ -68,11 +68,55 @@
 
 2. Выполнил настройку роутера R1, конфиг находится в файле  [R1.cfg](https://github.com/darkmikos/otus.ru/blob/master/lab02/R1.cfg).
 
+   ```
+   conf t
+   hostname R1
+   no ip domain-lookup
+   enable secret class
+   line console 0
+   password cisco
+   login
+   exit
+   line vty 0 15
+   password cisco
+   login
+   exit
+   service password-encryption
+   banner motd > Attention! Unauthorized entry is prohibited. Contacts email: ng.vlasov@ya.ru>
+   exit
+   clock set 12:05:00 13 April 2021
+   write
+   ```
+
 #### Настройка основных параметров для каждого коммутатора:
 
 1. Подключился к коммутаторам, зашел в превилигированный режим, далее в режим конфигурации.
+
 2. Выполнил настройку коммутаторов S1 и S2. Конфиги соответственно [S1.cfg](https://github.com/darkmikos/otus.ru/blob/master/lab02/S1.cfg) и [S2.cfg](https://github.com/darkmikos/otus.ru/blob/master/lab02/S2.cfg).
+
 3. Сохранил текущую конфигурацию в файл стартовой конфигурации.
+
+   ```
+   conf t
+   hostname S1(S2)
+   no ip domain-lookup
+   enable secret class
+   line console 0
+   password cisco
+   login
+   exit
+   line vty 0 15
+   password cisco
+   login
+   exit
+   service password-encryption
+   banner motd > Attention! Unauthorized entry is prohibited. Contacts email: ng.vlasov@ya.ru>
+   exit
+   clock set 15:23:00 13 April 2021
+   write
+   ```
+
+   
 
 #### Настройка компьютеров (hosts: PC-A, PC-B):
 
@@ -81,21 +125,147 @@
 #### Создание VLAN и назначение портов коммутаторов:
 
 1. На коммутаторе S1, S2 создал VLAN и присвоил им имена согласно таблице 2.
+
+   ```
+   conf t
+   vlan 3
+   name Management
+   exit
+   vlan 4
+   name Operations
+   exit
+   vlan 7
+   name ParkingLot
+   exit
+   vlan 8
+   name Native
+   exit
+   ```
+
+   
+
 2. Настроил интерфейс управления и шлюз по умолчанию на каждом коммутаторе, используя информацию об IP-адресе в таблице адресации.
+
+   ```
+   conf t
+   interface vlan 3
+    ip address 192.168.3.11(12) 255.255.255.0
+    no shutdown
+    exit
+    ip default-gateway 192.168.3.1
+   ```
+
 3. Назначил все неиспользуемые порты на обоих коммутаторах в ParkingLot VLAN, настроил их для статического режима доступа (static access mode) и отключил (shutdown).
+
 4. При конфигурации нескольких интерфейсов с одинаковыми параметрами использовал команду interface range.
+
+   ```
+   S1:
+   conf t
+   interface range f0/2-4
+    switchport mode access
+    switchport access vlan 7
+    shutdown
+    exit
+   interface range f0/7-24
+    switchport mode access
+    switchport access vlan 7
+    shutdown
+    exit
+   interface range g0/1-2
+    switchport mode access
+    switchport access vlan 7
+    shutdown
+    exit
+   ```
+
+   ```
+   S2:
+   conf t
+   interface range f0/2-17
+    switchport mode access
+    switchport access vlan 7
+    shutdown
+    exit
+   interface range f0/19-24
+    switchport mode access
+    switchport access vlan 7
+    shutdown
+    exit
+    interface range g0/1-2
+    switchport mode access
+    switchport access vlan 7
+    shutdown
+    exit
+   ```
+
 5. Назначил используемым портам соответствующей VLAN (указанные в таблице VLAN) и настроил их для статического режима доступа (static access mode).
+
+   ```
+   S1:
+   conf t
+   interface f0/6
+    switchport mode access
+    switchport access vlan 3
+    exit
+   ```
+
+   ```
+   S2:
+   conf t
+   interface f0/18
+    switchport mode access
+    switchport access vlan 4
+    exit
+   ```
+
 6. Командой show vlan brief проверил, что правильно назначил VLAN на порты.
 
 #### Настройка магистрали (trunk) 802.1Q между коммутаторами:
 
 1. Настроил на  S1, S2 коммутаторах интерфейсы F0/1 в режим trank (switchport mode trunk).
+
 2. Настроил на  S1, S2 коммутаторах интерфейсы F0/1 nativ vlan (switchport trunk native vlan 8).
+
 3. Настроил на  S1, S2 коммутаторах интерфейсы транк для пропуска VLAN 3,4,8 ( switchport trunk allowed vlan 3-4,8).
+
+   ```
+   S1:
+   conf t
+   interface f0/1
+    switchport mode trunk
+    switchport trunk allowed vlan 3-4,8
+    switchport trunk native vlan 8
+    exit
+   ```
+
+   ```
+   S2:
+   conf t
+   interface f0/1
+    switchport trunk allowed vlan 3,4,8
+    switchport trunk native vlan 8
+    switchport mode trunk
+    exit
+   ```
+
 4. Проверил настройки транковых портов использовал команду show interfaces trunk.
+
 5. На коммутаторе S1 настроила порт F0/5 так же как и F0/1.
+
+   ```
+   conf t
+   interface f0/5
+    switchport mode trunk
+    switchport trunk allowed vlan 3-4,8
+    switchport trunk native vlan 8
+    exit
+   ```
+
 6. Сохранил текущую конфигурацию коммутаторах S1, S2.
+
 7. Выполнил команду show interfaces trunk для проверки транкинга.
+
 8. Файлы с конфигурацией интерфейсов коммутаторов (S1.cfg и S2.cfg) находятся в папке [lab02](https://github.com/darkmikos/otus.ru/tree/master/lab02).
 
 #### Вопрос:
@@ -109,10 +279,42 @@
 #### Настройка маршрутизации между VLAN на роутере:
 
 1. Включил интерфейс G0/0/1 на маршрутизаторе.
+
+   ```
+   conf t
+   interface G0/0/1
+    no shutdown
+    exit
+   ```
+
 2. Настроил субинтерфейс для каждой VLAN, как указано в таблице IP-адресации. Все субинтерфейсы используют инкапсуляцию 802.1Q.
+
 3. Настроил описание субинтерфейсов.
+
 4. Для nativ vlan 8 IP-адрес не назначал.
+
+   ```
+   conf t
+   interface G0/0/1.3
+    description Net_3
+    encapsulation dot1Q 3
+    ip address 192.168.3.1 255.255.255.0
+    exit
+   interface G0/0/1.4
+    description Net_4
+    encapsulation dot1Q 4
+    ip address 192.168.4.1 255.255.255.0
+    exit
+   interface G0/0/1.8
+    description Nativ_8
+    encapsulation dot1Q 8 native
+    no ip address
+    exit
+   exit
+   ```
+
 5. Чтобы проверить работоспособность субинтерфейсов использовал команду show ip interface brief.
+
 6. Файл с конфигурацией интерфейсов роутера (R1.cfg) находятся в папке [lab02](https://github.com/darkmikos/otus.ru/tree/master/lab02).
 
 #### Проверка работоспособности системы:
