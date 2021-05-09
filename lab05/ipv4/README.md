@@ -408,6 +408,9 @@ conf t
 
 - Для проверки других сообщение DHCP выполнила команду **show ip dhcp server statistics**.
 
+  Рис. 3
+
+
 ![Рис. 3](https://github.com/darkmikos/otus.ru/blob/master/lab05/ipv4/show_ip_dhcp_server_statistics.png)
 
 #### Получение IP-адреса от DHCP на PC-A.
@@ -546,14 +549,15 @@ IP address       Client-ID/              Lease expiration        Type
 192.168.1.102    0090.2187.B91A           --                     Automatic
 ```
 
-- С помощью команды ***show ip dhcp server statistics\*** проверяем статистику на R1 (Рис.11) и R2 (Рис.12).
+- С помощью команды show ip dhcp server statistics проверяем статистику на R1 (Рис.4) и R2 (Рис.5).
 
-Рис.11
+Рис. 4
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv4/show_ip_dhcp_server_statistics_end.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv4/show_ip_dhcp_server_statistics_end.png)
+![](https://github.com/darkmikos/otus.ru/blob/master/lab05/ipv4/show_ip_dhcp_server_statistics_end.png)
 
-Рис.12
+Рис. 5
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv4/R2_show_ip_dhcp_server_statistics_end.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv4/R2_show_ip_dhcp_server_statistics_end.png)
+![](https://github.com/darkmikos/otus.ru/blob/master/lab05/ipv4/R2_show_ip_dhcp_server_statistics_end.png)
 
 Как видно из выводов, на втором роутере таблица статистики пуста, так как он является всего лишь ретранслятором запросов.
+
