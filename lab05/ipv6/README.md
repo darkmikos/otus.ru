@@ -47,106 +47,342 @@
 
 #### Настройка базовых параметров коммутаторов и маршрутизаторов:
 
-Базовые настройки коммутаторов и маршрутизаторов находятся в папке [configs](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/configs) в файлах **OP_S1.txt**, **OP_S2.txt**, **OP_R1.txt**, **OP_R2.txt** соответственно. Для правильного ввода последовательности параметров команд на устройствах использую вопросительный знак (?). На коммутаторах выключила все неиспользованные порты (**S1.txt** и **S2.txt** в папке [configs](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/configs)). А на маршрутизаторах включила маршрутизацию IPv6 (**R1.txt** и **R2.txt** в папке [configs](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/configs)).
+Настройки коммутаторов и маршрутизаторов находятся в файлах [R1.cfg](https://github.com/darkmikos/otus.ru/blob/master/lab05/ipv6/R1.cfg), [R2.cfg](https://github.com/darkmikos/otus.ru/blob/master/lab05/ipv6/R2.cfg), [S1.cfg](https://github.com/darkmikos/otus.ru/blob/master/lab05/ipv6/S1.cfg), [S2.cfg](https://github.com/darkmikos/otus.ru/blob/master/lab05/ipv6/S2.cfg) соответственно. Для правильного ввода последовательности параметров команд на устройствах использую вопросительный знак (?). 
 
-#### Настройка интерфейсов и маршрутизации для обоих маршрутизаторов:
+```
+conf t
+!
+hostname *
+no ip domain-lookup
+enable secret class
+!
+line console 0
+password cisco
+login
+logging synchronous
+exit
+!
+line vty 0 15
+password cisco
+login
+exit
+!
+service password-encryption
+!
+banner motd > Attention! Unauthorized entry is prohibited. Contacts email: ng.vlasov@ya.ru
+>
+!
+exit
+!
+clock set 22:56 9 May 2021
+!
+write
 
-Сначала настроила интерфейсы E0/0 и E0/1 на маршрутизаторах R1 и R2 с адресами IPv6, указанными в таблице выше. Далее настроила маршрут по умолчанию на каждом маршрутизаторе, указывающий на IP-адрес E0/0 на другом маршрутизаторе.
+```
 
-Настройки описаны в конфигурационных файлах **R1.txt** и **R2.txt** в папке [configs](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/configs).
+На коммутаторе S1 выключил все неиспользованные интерфейсы.
 
-Для проверки работы маршрутизации выполнила команду ping с маршрутизатора R1 на адрес E0/1 R2 (результат на рис.2).
+```
+conf t
+int range fa0/1-4, fa0/7-24, gi0/1-2
+ shutdown
+```
 
-Рис.2
+На коммутаторе S2 выключил все неиспользованные интерфейсы.
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/R1_ping_R2_E0_1.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/R1_ping_R2_E0_1.png)
+```
+conf t
+int range fa0/1-4, fa0/6-17, fa0/19-24, gi0/1-2
+ shutdown
+```
 
-#### ***II. Проверка назначения адреса методом SLAAC от маршрутизатора R1.\***
+На маршрутизаторах включил маршрутизацию IPv6.
 
-Для проверки автоматической раздачи IPv6-адресов запустила компьютер. Сетевая карта настроена на автоматическое получение адресов. В командной строке ввела команду ***ipconfig\***. Вывод команды на рисунке 3.
+```
+conf t
+ipv6 unicast-routing
+```
 
-Рис.3
+Настройка интерфейсов и маршрутизации для обоих маршрутизаторов.
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/PC-A_IPv6.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/PC-A_IPv6.png)
+Настройка интерфейсы G0/0/0 и G0/0/1 на R1 с адресами IPv6, указанными в таблице выше:
+
+```
+conf t
+int g0/0/0
+ ipv6 address 2001:DB8:ACAD:2::1/64
+ ipv6 address fe80::1 link-local
+ no shutdown
+ exit
+!
+int g0/0/1
+ ipv6 address 2001:DB8:ACAD:1::1/64
+ ipv6 address fe80::1 link-local
+ no shutdown
+ exit
+```
+
+Настройка интерфейсы G0/0/0 и G0/0/1 на R2 с адресами IPv6, указанными в таблице выше:
+
+```
+conf t
+int g0/0/0
+ ipv6 address 2001:DB8:ACAD:2::2/64
+ ipv6 address fe80::2 link-local
+ no shutdown
+ exit
+!
+int g0/0/1
+ ipv6 address 2001:DB8:ACAD:3::1/64
+ ipv6 address fe80::1 link-local
+ no shutdown
+ exit
+```
+
+Далее настроила маршрут по умолчанию на каждом маршрутизаторе, указывающий на IP-адрес G0/0/0 на другом маршрутизаторе.
+
+R1
+
+```
+conf t
+ipv6 route ::/0 g0/0/0 2001:DB8:ACAD:2::2
+```
+
+R2
+
+```
+conf t
+ipv6 route ::/0 g0/0/0 2001:DB8:ACAD:2::1
+```
+
+Конфигурационные файлы [R1.cfg](https://github.com/darkmikos/otus.ru/blob/master/lab05/ipv6/R1.cfg) и [R2.cfg](https://github.com/darkmikos/otus.ru/blob/master/lab05/ipv6/R2.cfg).
+
+Провел тест подтверждающий работу маршрутизации. Для этого отправил эхо-запрос на на адрес G0/0/1 R2:
+
+```
+R1#ping 2001:db8:acad:3::1 
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 2001:db8:acad:3::1, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/0 ms
+```
+
+#### II. Проверка назначения адреса методом SLAAC от маршрутизатора R1.
+
+Для проверки автоматической раздачи IPv6-адресов запустил компьютер PC-A. Сетевая карта настроена на автоматическое получение адресов. В командной строке ввел команду ipconfig.
+
+```
+C:\>ipconfig 
+
+FastEthernet0 Connection:(default port)
+
+   Connection-specific DNS Suffix..: 
+   Link-local IPv6 Address.........: FE80::260:3EFF:FE68:3377
+   IPv6 Address....................: 2001:DB8:ACAD:1:260:3EFF:FE68:3377
+   Autoconfiguration IPv4 Address..: 169.254.51.119
+   Subnet Mask.....................: 255.255.0.0
+   Default Gateway.................: FE80::1
+                                     0.0.0.0
+```
 
 *Вопрос:* Откуда взялась часть адреса, содержащая идентификатор хоста?
 
 *Ответ:* Если не используется DHCP сервер, то это часть адреса генерируется автоматически (генератор случайных чисел).
 
-#### ***III. Настройка и проверка сервера DHCPv6 на маршрутизаторе R1.\***
+#### III. Настройка и проверка сервера DHCPv6 на маршрутизаторе R1.
 
-В этой части лабораторной работы настроила DHCP-сервер без отслеживания состояния на маршрутизаторе R1. Нужно сделать так, чтобы PC-A получил информацию о DNS-сервере и домене.
+В этой части лабораторной работы настроил DHCP-сервер без отслеживания состояния на маршрутизаторе R1. Нужно сделать так, чтобы PC-A получил информацию о DNS-сервере и домене.
 
 #### Изучение более подробной конфигурации PC-A.
 
-Для получения более расширенной информации о настройках PC выполнила команду ***ipconfig /all\***. Вывод на рис.4.
+Для получения более расширенной информации о настройках PC выполнила команду ipconfig /all. 
 
-Рис.4
+```
+C:\>ipconfig /all
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/PC-A_ipcongig_all_1.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/PC-A_ipcongig_all_1.png)
+FastEthernet0 Connection:(default port)
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/PC-A_ipcongig_all_2.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/PC-A_ipcongig_all_2.png)
-
-Из вывода видим, что нет суффикса первичного DNS. Также видим, что предоставленные адреса DNS-серверов являются «site local anycast», а не unicast адресами, как можно было бы ожидать.
+   Connection-specific DNS Suffix..: 
+   Physical Address................: 0060.3E68.3377
+   Link-local IPv6 Address.........: FE80::260:3EFF:FE68:3377
+   IPv6 Address....................: 2001:DB8:ACAD:1:260:3EFF:FE68:3377
+   Autoconfiguration IP Address....: 169.254.51.119
+   Subnet Mask.....................: 255.255.0.0
+   Default Gateway.................: FE80::1
+                                     0.0.0.0
+   DHCP Servers....................: 0.0.0.0
+   DHCPv6 IAID.....................: 
+   DHCPv6 Client DUID..............: 00-01-00-01-0A-74-39-24-00-60-3E-68-33-77
+   DNS Servers.....................: ::
+                                     0.0.0.0
+```
 
 #### Настройка R1 для предоставления DHCPv6 без сохранения состояния для PC-A.
 
-- На маршрутизаторе R1 создала пул DHCP IPv6 с именем R1-STATELESS, в жтом пуле назначила адрес DNS-сервера и имя домена.
-- Настроила интерфейс E0/1 на роутере R1 для предоставления флага конфигурации OTHER для локальной сети маршрутизатора R1, а так же указала созданный пул как DHCP ресурс для этого интерфейса.
+- На маршрутизаторе R1 создал пул DHCP IPv6 с именем R1-STATELESS. В пуле назначил адрес DNS-сервера и имя домена.
 
-Создание пула и настройка интерфейса описаны в конфигурационном файле **R1.txt** в папке [configs](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/configs).
+  ```
+  conf t
+  ipv6 dhcp pool R1-STATELESS
+    dns-server 2001:db8:acad::254
+    domain-name STATELESS.com
+    exit
+  ```
 
-- После этого, перезагружаем компьютер и повторно вводим команду ***ipconfig /all\***. Вывод на рис.5. в котором видим, что появился Connection-specific DNS Suffix - STATELESS.com
+  Настроила интерфейс E0/1 на роутере R1 для предоставления флага конфигурации OTHER для локальной сети маршрутизатора R1, а так же указала созданный пул как DHCP ресурс для этого интерфейса.
 
-Рис.5
+  ```
+  conf t
+  int g0/0/1
+    ipv6 nd other-config-flag
+    ipv6 dhcp server R1-STATELESS
+    exit
+  ```
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/PC-A_ipcongig_all_1_DHCP.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/PC-A_ipcongig_all_1_DHCP.png)
+Конфигурационный файл [R1.cfg](https://github.com/darkmikos/otus.ru/blob/master/lab05/ipv6/R1.cfg).
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/PC-A_ipcongig_all_2_DHCP.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/PC-A_ipcongig_all_2_DHCP.png)
+- После этого, перезагружаем компьютер и повторно вводим команду ipconfig /all. Вывод в котором видим, что появился Connection-specific DNS Suffix - STATELESS.com
 
-- Для проверки подключения, отправила эхо-запрос на IP-адрес интерфейса E0/1 R2 - 2001:db8:acad:3::1/64 (рисунок 6).
+  ```
+  C:\>ipconfig /all
+  
+  FastEthernet0 Connection:(default port)
+  
+     Connection-specific DNS Suffix..: STATELESS.com 
+     Physical Address................: 0060.3E68.3377
+     Link-local IPv6 Address.........: FE80::260:3EFF:FE68:3377
+     IPv6 Address....................: 2001:DB8:ACAD:1:260:3EFF:FE68:3377
+     Autoconfiguration IP Address....: 169.254.51.119
+     Subnet Mask.....................: 255.255.0.0
+     Default Gateway.................: FE80::1
+                                       0.0.0.0
+     DHCP Servers....................: 0.0.0.0
+     DHCPv6 IAID.....................: 695836627
+     DHCPv6 Client DUID..............: 00-01-00-01-0A-74-39-24-00-60-3E-68-33-77
+     DNS Servers.....................: 2001:DB8:ACAD::254
+                                       0.0.0.0
+  ```
 
-Рис.6
+- Для проверки подключения, отправила эхо-запрос на IP-адрес интерфейса G0/0/1 R2 - 2001:db8:acad:3::1/64.
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/PC-A_ping_R2_E0_1.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/PC-A_ping_R2_E0_1.png)
+  ```
+  C:\>ping 2001:db8:acad:3::1
+  
+  Pinging 2001:db8:acad:3::1 with 32 bytes of data:
+  
+  Reply from 2001:DB8:ACAD:3::1: bytes=32 time<1ms TTL=254
+  Reply from 2001:DB8:ACAD:3::1: bytes=32 time<1ms TTL=254
+  Reply from 2001:DB8:ACAD:3::1: bytes=32 time<1ms TTL=254
+  Reply from 2001:DB8:ACAD:3::1: bytes=32 time<1ms TTL=254
+  
+  Ping statistics for 2001:DB8:ACAD:3::1:
+      Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+  Approximate round trip times in milli-seconds:
+      Minimum = 0ms, Maximum = 0ms, Average = 0ms
+  ```
 
-#### ***IV. Настройка DHCPv6-сервера с отслеживанием состояния на R1.\***
+#### IV. Настройка DHCPv6-сервера с отслеживанием состояния на R1.
 
-В этой части работы я создала пул DHCPv6 на маршрутизаторе R1 для сети 2001:db8:acad:3:aaaa::/80. Это предоставит адреса локальной сети, подключенной к интерфейсу E0/1 на R2. В составе пула установила DNS-сервер - 2001:db8:acad::254 и установила имя домена - STATEFUL.com. Далее назначила созданный пул на интерфейс E0/0.
+В этой части работы я создал пул DHCPv6 на маршрутизаторе R1 для сети 2001:db8:acad:3:aaaa::/80. Это предоставит адреса локальной сети, подключенной к интерфейсу g0/0/1 на R2. В составе пула установила DNS-сервер - 2001:db8:acad::254 и установил имя домена - STATEFUL.com. Далее назначил созданный пул на интерфейс G0/0/0.
 
-Создание пула и настройка интерфейса описаны в конфигурационном файле **R1.txt** в папке [configs](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/configs).
+```
+conf t
+ipv6 dhcp pool R2-STATEFUL
+ address prefix 2001:db8:acad:3:aaa::/80
+ dns-server 2001:db8:acad::254
+ domain-name STATEFUL.com
+ exit
+!
+interface g0/0/0
+ ipv6 dhcp server R2-STATEFUL
+ exit
+```
 
-#### ***IV. Настройка и проверка ретранслятора DHCPv6 на R2.\***
+Конфигурационный файл [R1.cfg](https://github.com/darkmikos/otus.ru/blob/master/lab05/ipv6/R1.cfg).
+
+#### IV. Настройка и проверка ретранслятора DHCPv6 на R2.
 
 Настройка ретрансляции на R2 позволит получать адрем IPv6 на компьютере PC-B.
 
 #### Проверка на компьютере PC-B генерируемого им адреса SLAAC.
 
-- Для проверки ввела команду ***ipconfig /all\***. Вывод на рис.7. в котором видим сгенерированный автоматически кусок адреса и префикс 2001:db8:acad:3 .
+- Для проверки ввел команду ipconfig /all. Вывод в котором видим сгенерированный автоматически кусок адреса и префикс 2001:db8:acad:3
 
-Рис.7
+  ```
+  C:\>ipconfig /all
+  
+  FastEthernet0 Connection:(default port)
+  
+     Connection-specific DNS Suffix..: 
+     Physical Address................: 0001.42E2.E789
+     Link-local IPv6 Address.........: FE80::201:42FF:FEE2:E789
+     IPv6 Address....................: 2001:DB8:ACAD:3:201:42FF:FEE2:E789
+     Autoconfiguration IP Address....: 169.254.231.137
+     Subnet Mask.....................: 255.255.0.0
+     Default Gateway.................: FE80::1
+                                       0.0.0.0
+     DHCP Servers....................: 0.0.0.0
+     DHCPv6 IAID.....................: 
+     DHCPv6 Client DUID..............: 00-01-00-01-D0-61-26-94-00-01-42-E2-E7-89
+     DNS Servers.....................: ::
+                                       0.0.0.0
+  ```
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/PC-B_ipcongig_all_1.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/PC-B_ipcongig_all_1.png)
+#### Настройка R2 в качестве агента ретрансляции DHCPv6 для LAN на G0/0/1.
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/PC-B_ipcongig_all_2.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/PC-B_ipcongig_all_2.png)
+На интерфейсе G0/0/1 маршрутизатора R2 ввел команду ipv6 dhcp relay с адресом интерфейса G0/0/0 на R1, а так же задал режим сервера с отслеживанием состояния командой managed-config-flag. 
 
-#### Настройка R2 в качестве агента ретрансляции DHCPv6 для LAN на E0/1.
+```
+conf t
+interface g0/0/1
+ ipv6 nd managed-config-flag
+ ipv6 dhcp relay destination 2001:db8:acad:2::1 g0/0/0
+ exit
+```
 
-На интерфейсе E0/1 маршрутизатора R2 ввела команду ***ipv6 dhcp relay\*** с адресом интерфейса E0/0 на R1, а так же задаела режим сервера с отслеживанием состояния командой ***managed-config-flag\***. Настройка интерфейса описана в конфигурационном файле **R2.txt** в папке [configs](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/configs).
+Конфигурационный файл [R2.cfg](https://github.com/darkmikos/otus.ru/blob/master/lab05/ipv6/R2.cfg).
 
 #### Получение IPv6-адреса от DHCPv6 на PC-B.
 
 - Перезагрузила компьюте PC-B.
-- В командной строке ввела команду ***ipconfig /all\***. Вывод на риунке 8. Теперь видим адрес DNS-сервера и DNS Suffix.
+- В командной строке ввел команду ipconfig /all. Теперь мы видим адрес DNS-сервера и DNS Suffix.
 
-Рис.8
+```
+C:\Users\Student> ipconfig /all
+Windows IP Configuration
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/PC-B_ipcongig_all_1_DHCP.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/PC-B_ipcongig_all_1_DHCP.png)
+   Host Name . . . . . . . . . . . . : DESKTOP-3FR7RKA
+   Primary Dns Suffix  . . . . . . . : 
+   Node Type . . . . . . . . . . . . : Hybrid
+   IP Routing Enabled. . . . . . . . : No
+   WINS Proxy Enabled. . . . . . . . : No
+   DNS Suffix Search List. . . . . . : STATEFUL.com
 
-![](PC-B_ipcongig_all_2_DHCP.png
+Ethernet adapter Ethernet0:
 
-- Последним шагом проверяю возможность подключения, отправив эхо-запрос на IP-адрес интерфейса E0/1 маршрутизатора R1. Результат на рис.9
+   Connection-specific DNS Suffix  . : STATEFUL.com
+   Description . . . . . . . . . . . : Intel(R) 852574L Gigabit Network Connection
+   Physical Address. . . . . . . . . : 00-50-56-B3-7B-06
+   DHCP Enabled. . . . . . . . . . . : Yes
+   Autoconfiguration Enabled . . . . : Yes
+   IPv6 Address. . . . . . . . . . . : 2001:db8:acad3:aaaa:7104:8b7d:5402(Preferred)
+   Lease Obtained. . . . . . . . . . : Sunday, October 6, 2019 3:27:13 PM
+   Lease Expires . . . . . . . . . . : Tuesday, October 8, 2019 3:27:13 PM
+   Link-local IPv6 Address . . . . . : fe80::a0f3:3d39:f9fb:a020%6(Preferred)
+   IPv4 Address. . . . . . . . . . . : 169.254.160.32(Preferred)
+   Subnet Mask . . . . . . . . . . . : 255.255.0.0
+   Default Gateway . . . . . . . . . : fe80::2%6
+   DHCPv6 IAID . . . . . . . . . . . : 50334761
+   DHCPv6 Client DUID. . . . . . . . : 00-01-00-01-24-F2-08-38-00-50-56-B3-7B-06
+   DNS Servers . . . . . . . . . . . : 2001:db8:acad::254
+   NetBIOS over Tcpip. . . . . . . . : Enabled
+   Connection-specific DNS Suffix Search List  :
+                                       STATEFUL.com
+```
 
-Рис.9
+- Последним шагом проверяю возможность подключения, отправив эхо-запрос на IP-адрес интерфейса G0/0/1 маршрутизатора R1. Результат на рис. 3
+
+Рис. 3
 
 [![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/PC-B_ping_R1_E0_1.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/PC-B_ping_R1_E0_1.png)
