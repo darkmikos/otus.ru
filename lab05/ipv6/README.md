@@ -385,4 +385,4 @@ Ethernet adapter Ethernet0:
 
 Рис. 3
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/PC-B_ping_R1_E0_1.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv6/PC-B_ping_R1_E0_1.png)
+![](https://github.com/darkmikos/otus.ru/blob/master/lab05/ipv6/PC-B_ping_R1_g0_0_1.png)
