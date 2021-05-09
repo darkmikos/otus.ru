@@ -6,7 +6,9 @@
 
 ![](https://github.com/darkmikos/otus.ru/blob/master/lab05/ipv6/topology.png)
 
+Рис. 2
 
+![](https://github.com/darkmikos/otus.ru/blob/master/lab05/ipv6/%D1%81onnection_diagram.png)
 
 ### Таблица адресации:
 
@@ -14,13 +16,13 @@
 
 | Device | Interface | IPv6 Address          |
 | ------ | --------- | --------------------- |
-| R1     | E0/0      | 2001:db8:acad:2::1/64 |
+| R1     | G0/0/0    | 2001:db8:acad:2::1/64 |
 |        |           | fe80::1               |
-|        | E0/1      | 2001:db8:acad:1::1/64 |
+|        | G0/0/1    | 2001:db8:acad:1::1/64 |
 |        |           | fe80::1               |
-| R2     | E0/0      | 2001:db8:acad:2::2/64 |
+| R2     | G0/0/0    | 2001:db8:acad:2::2/64 |
 |        |           | fe80::2               |
-|        | E0/1      | 2001:db8:acad:3::1/64 |
+|        | G0/0/1    | 2001:db8:acad:3::1/64 |
 |        |           | fe80::1               |
 | PC-A   | NIC       | DHCP                  |
 | PC-B   | NIC       | DHCP                  |
