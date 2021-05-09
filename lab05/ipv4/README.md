@@ -189,7 +189,7 @@ exit
 
 ```
 conf t
- ip route 0.0.0.0 0.0.0.0 10.0.0.2
+ ip route 0.0.0.0 0.0.0.0 10.0.0.1
  exit
 ```
 
@@ -269,95 +269,282 @@ Success rate is 80 percent (4/5), round-trip min/avg/max = 0/0/0 ms
   exit
   ```
 
-Для групповой настройки портов использовала команду interface range. Конфигурационные файлы [S1.cfg](https://github.com/darkmikos/otus.ru/blob/master/lab05/ipv4/S1.cfg) и [S2cfg](https://github.com/darkmikos/otus.ru/blob/master/lab05/ipv4/S2.cfg).
+Для групповой настройки портов пользовался командой interface range. Конфигурационные файлы [S1.cfg](https://github.com/darkmikos/otus.ru/blob/master/lab05/ipv4/S1.cfg) и [S2cfg](https://github.com/darkmikos/otus.ru/blob/master/lab05/ipv4/S2.cfg).
 
 #### Назначение VLAN на интерфейсы.
 
-Назначила порты, которые выделены для связи c компьютерами (на S1 - E1/1, на S2 - E4/1), соответствующей VLAN и статический режим (static access mode).
+Назначил интерфейсам, которые выделены для связи c компьютерами (на S1 - F0/6, на S2 - F0/18), соответствующий VLAN и перевел в статический режим (static access mode).
 
-*Вопрос:* Почему интерфейс E1/0 указан в VLAN 1?
+S1
 
-*Ответ:* Так как интерфейс E1/0 не был сконфигурирован – он по-умолчанию остается в VLAN 1.
+```
+conf t
+interface fa0/6
+ switchport mode access
+ switchport access vlan 100
+ no shutdown
+ exit
+exit
+```
 
-#### Настройка интерфейса E1/0 на S1 как транковый 802.1Q.
+S2
 
-Настроила интерфейс E1/0 как транковый. Установила native VLAN в значение 1000. И разрешила прохождение через этот порт VLAN-ам 100, 200 и 1000. Все команды описаны в конфигурационном файле **S1.txt** в папке [configs](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv4/configs). Для проверки правильности настройки использовала команду ***show interface trunk\***.
+```
+conf t
+interface fa0/18
+ switchport mode access
+ switchport access vlan 1
+ no shutdown
+ exit
+exit
+```
 
-Рис.2
+*Вопрос:* Почему интерфейс fa0/18 указан в VLAN 1?
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv4/S1_sh_int_trunk.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv4/S1_sh_int_trunk.png)
+*Ответ:* Так как интерфейс fa0/18 не был сконфигурирован – он по умолчанию остается в VLAN 1.
+
+#### Настройка интерфейса fa0/5 на S1 как транковый 802.1Q.
+
+Настроил интерфейс fa0/5 в режиме транк. Указал native VLAN в значение 1000. Включил прохождение через этот порт VLAN-ам 100, 200 и 1000. 
+
+```
+conf t
+interface fa0/5
+ switchport trunk allowed vlan 100,200,1000
+ switchport trunk native vlan 1000
+ switchport mode trunk
+ exit
+exit
+```
+
+Конфигурационный файл [S1.cfg](https://github.com/darkmikos/otus.ru/blob/master/lab05/ipv4/S1.cfg).
+
+Для проверки правильности настройки использовала команду **show interface trunk**.
+
+```
+S1#show interfaces trunk 
+Port        Mode         Encapsulation  Status        Native vlan
+Fa0/5       on           802.1q         trunking      1000
+
+Port        Vlans allowed on trunk
+Fa0/5       100,200,1000
+
+Port        Vlans allowed and active in management domain
+Fa0/5       100,200,1000
+
+Port        Vlans in spanning tree forwarding state and not pruned
+Fa0/5       100,200,1000
+```
 
 *Вопрос:* Какой IP-адрес был бы у ПК, если бы он был подключен к сети с помощью DHCP?
 
 *Ответ:* Если не настроены исключения, то первый используемый адрес сети.
 
-#### ***II. Настройка и проверка двух серверов DHCPv4 на маршрутизаторе R1.\***
+#### II. Настройка и проверка двух серверов DHCPv4 на маршрутизаторе R1.
 
 #### Настройка R1 с пулами DHCPv4 для двух поддерживаемых подсетей.
 
-Для того, что бы сервер DHCP выдавал IP-адреса предсказуемо, необходимо настроить исключения. Из каждого пула исключила первые пять адресов. После этого можно создавать пулы с испольованием уникальных имен. Так же настроила доменное имя ***ccna-lab.com\***, настроила шлюзы по умолчанию для каждого пула. Выставила срок аренды на 2 дня 12 часов 30 минут. Для второго пула ВРСЗм4 использовала имя ***R2_Client_LAN\*** и использовала доменное имя ***ccna-lab.com\*** и срок аренды, такие же как и в первом пуле. Все команды описаны в конфигурационном файле **R1.txt** в папке [configs](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv4/configs).
+Для того, что бы сервер DHCP выдавал IP-адреса предсказуемо, необходимо настроить исключения. Из каждого пула исключил первые пять адресов. После этого можно создавать пулы с испольованием уникальных имен. Настроил доменное имя ***ccna-lab.com\***, настроил шлюзы по умолчанию для каждого пула. Выставила срок аренды на 2 дня 12 часов 30 минут. Для второго пула использовала имя ***R2_Client_LAN\*** и использовала доменное имя ***ccna-lab.com\*** и срок аренды, такие же как и в первом пуле. Конфигурационный файл [R1.cfg](https://github.com/darkmikos/otus.ru/blob/master/lab05/ipv4/R1.cfg).
+
+```
+conf t
+ ip dhcp excluded-address 192.168.1.1 192.168.1.5
+ ip dhcp excluded-address 192.168.1.97 192.168.1.101
+ ip dhcp pool CLIENTS_POOL
+  network 192.168.1.0 255.255.255.192
+  default-router 192.168.1.1
+  lease 2 12 30
+  domain-name ccna-lab.com
+  exit
+ ip dhcp pool R2_Client_LAN
+  network 192.168.1.96 255.255.255.240
+  default-router 192.168.1.97
+  lease 2 12 30
+  domain-name ccna-lab.com
+  exit
+ exit
+```
 
 #### Проверка конфигурации DHCPv4-сервера.
 
-- Выполнив команду ***show ip dhcp pool\*** мы видим, что у нас настроено два пула, видим адреса пулов; видим их адресацию; видим, сколько адресов в пуле. Вывод команды приводится на рисунке 3.
+- Выполнив команду **show ip dhcp pool** мы видим, что у нас настроено два пула, видим адреса пулов; видим их адресацию; видим, сколько адресов в пуле.
 
-Рис.3
+  ```
+  R1#show ip dhcp pool 
+  
+  Pool CLIENTS_POOL :
+   Utilization mark (high/low)    : 100 / 0
+   Subnet size (first/next)       : 0 / 0 
+   Total addresses                : 62
+   Leased addresses               : 0
+   Excluded addresses             : 2
+   Pending event                  : none
+  
+   1 subnet is currently in the pool
+   Current index        IP address range                    Leased/Excluded/Total
+   192.168.1.1          192.168.1.1      - 192.168.1.62      0    / 2     / 62
+  
+  Pool R2_Client_LAN :
+   Utilization mark (high/low)    : 100 / 0
+   Subnet size (first/next)       : 0 / 0 
+   Total addresses                : 14
+   Leased addresses               : 0
+   Excluded addresses             : 2
+   Pending event                  : none
+  
+   1 subnet is currently in the pool
+   Current index        IP address range                    Leased/Excluded/Total
+   192.168.1.97         192.168.1.97     - 192.168.1.110     0    / 2     / 14
+  ```
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv4/show_ip_dhcp_pool.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv4/show_ip_dhcp_pool.png)
+- Выполнив следующую команду **show ip dhcp binding** видим, что пока нет выданных адресов.
 
-- Выполнив следующую команду - ***show ip dhcp binding\*** видим, что пока нет выданных адресов (рисунок 4):
+  ```
+  R1#show ip dhcp b
+  R1#show ip dhcp binding 
+  IP address       Client-ID/              Lease expiration        Type
+                   Hardware address
+  ```
 
-Рис.4
+- Для проверки других сообщение DHCP выполнила команду **show ip dhcp server statistics**.
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv4/show_ip_dhcp_binding.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv4/show_ip_dhcp_binding.png)
-
-- Для проверки других сообщение DHCP выполнила команду ***show ip dhcp server statistics\***. Результат вывода на рисунке 5.
-
-Рис.5
-
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv4/show_ip_dhcp_server_statistics.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv4/show_ip_dhcp_server_statistics.png)
+![Рис. 3](https://github.com/darkmikos/otus.ru/blob/master/lab05/ipv4/show_ip_dhcp_server_statistics.png)
 
 #### Получение IP-адреса от DHCP на PC-A.
 
-- В настройках сети компьютера установила параметр "Получать данные автоматически". Затем открыла ***cmd\*** и ввела команду ***ipconfig /renew\*** для получения новой информации (рис.6).
+- На компьютере PC-A в настройках сетевой карты установил параметр "Получать данные автоматически". Затем открыла cmd и ввел команды ipconfig и ipconfig /renew для получения новой информации.
 
-Рис.6
+  ```
+  Packet Tracer PC Command Line 1.0
+  C:\>ipconfig
+  
+  FastEthernet0 Connection:(default port)
+  
+     Connection-specific DNS Suffix..: ccna-lab.com
+     Link-local IPv6 Address.........: FE80::2E0:A3FF:FE16:59AA
+     IPv6 Address....................: ::
+     IPv4 Address....................: 192.168.1.6
+     Subnet Mask.....................: 255.255.255.192
+     Default Gateway.................: ::
+                                       192.168.1.1
+  
+  Bluetooth Connection:
+  
+     Connection-specific DNS Suffix..: ccna-lab.com
+     Link-local IPv6 Address.........: ::
+     IPv6 Address....................: ::
+     IPv4 Address....................: 0.0.0.0
+     Subnet Mask.....................: 0.0.0.0
+     Default Gateway.................: ::
+                                       0.0.0.0
+  
+  C:\>ipconfig /renew
+  
+     IP Address......................: 192.168.1.6
+     Subnet Mask.....................: 255.255.255.192
+     Default Gateway.................: 192.168.1.1
+     DNS Server......................: 0.0.0.0
+  
+  C:\>
+  ```
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv4/PC-A_Win_IP_DHCP.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv4/PC-A_Win_IP_DHCP.png)
+- Проверил возможность подключения, отправив эхо-запрос на IP-адрес интерфейса G0/0/1 маршрутизатора R1
 
-- Проверила возможность подключения, отправив эхо-запрос на IP-адрес интерфейса E0/1 маршрутизатора R1 (Рис.7)
+  ```
+  C:\>ping 192.168.1.1
+  
+  Pinging 192.168.1.1 with 32 bytes of data:
+  
+  Reply from 192.168.1.1: bytes=32 time<1ms TTL=255
+  Reply from 192.168.1.1: bytes=32 time<1ms TTL=255
+  Reply from 192.168.1.1: bytes=32 time<1ms TTL=255
+  Reply from 192.168.1.1: bytes=32 time<1ms TTL=255
+  
+  Ping statistics for 192.168.1.1:
+      Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+  Approximate round trip times in milli-seconds:
+      Minimum = 0ms, Maximum = 0ms, Average = 0ms
+  ```
 
-Рис.7
+#### III. Настройка и проверка DHCP-ретрансляции на R2.
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv4/PC-A_Win_IP_ping_E0_1_R1.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv4/PC-A_Win_IP_ping_E0_1_R1.png)
+Необходимо настроить R2 для ретрансляции запросов DHCP из локальной сети по интерфейсу G0/0/1 на сервер DHCP (R1).
 
-#### ***III. Настройка и проверка DHCP-ретрансляции на R2.\***
+#### Настройка R2 в качестве агента ретрансляции DHCP для локальной сети на 0/1.
 
-Необходимо настроить R2 для ретрансляции запросов DHCP из локальной сети по интерфейсу E0/1 на сервер DHCP (R1).
+На интерфейсе G0/0/1 настроила ip helper-address, указав IP-адрес G0/0/0 маршрутизатора R1. 
 
-#### Настройка R2 в качестве агента ретрансляции DHCP для локальной сети на E0/1.
-
-На интерфейсе E0/1 настроила второй адрес командой ***ip helper-address\***, указав IP-адрес E0/0 маршрутизатора R1. Команда описана в конфигурационном файле **R2.txt** в папке [configs](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv4/configs).
+```
+conf t
+interface GigabitEthernet0/0/1
+ ip helper-address 10.0.0.1
+```
 
 #### Получение IP-адреса от DHCP на PC-B.
 
-- В настройках сети компьютера установила параметр "Получать данные автоматически". Затем открыла ***cmd\*** и ввела команду ***ipconfig /renew\*** для получения новой информации (рис.8).
+- На компьютере PC-B в настройках сетевой карты установил параметр "Получать данные автоматически". Затем открыла cmd и ввел команды ipconfig и ipconfig /renew для получения новой информации.
 
-Рис.8
+  ```
+  C:\>ipconfig
+  
+  FastEthernet0 Connection:(default port)
+  
+     Connection-specific DNS Suffix..: ccna-lab.com
+     Link-local IPv6 Address.........: FE80::290:21FF:FE87:B91A
+     IPv6 Address....................: ::
+     IPv4 Address....................: 192.168.1.102
+     Subnet Mask.....................: 255.255.255.240
+     Default Gateway.................: ::
+                                       192.168.1.97
+  
+  Bluetooth Connection:
+  
+     Connection-specific DNS Suffix..: ccna-lab.com
+     Link-local IPv6 Address.........: ::
+     IPv6 Address....................: ::
+     IPv4 Address....................: 0.0.0.0
+     Subnet Mask.....................: 0.0.0.0
+     Default Gateway.................: ::
+                                       0.0.0.0
+  
+  C:\>ipconfig /renew
+  
+     IP Address......................: 192.168.1.102
+     Subnet Mask.....................: 255.255.255.240
+     Default Gateway.................: 192.168.1.97
+     DNS Server......................: 0.0.0.0
+  ```
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv4/PC-B_Win_IP_DHCP.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv4/PC-B_Win_IP_DHCP.png)
+  
 
-- Проверила возможность подключения, отправив эхо-запрос на IP-адрес интерфейса E0/1 маршрутизатора R1 (Рис.9).
+- Проверил доступность, отправив эхо-запрос на IP-адрес интерфейса G0/0/1 маршрутизатора R1.
 
-Рис.9
+```
+C:\>ping 192.168.1.1
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv4/PC-B_Win_IP_ping_E0_1_R1.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv4/PC-B_Win_IP_ping_E0_1_R1.png)
+Pinging 192.168.1.1 with 32 bytes of data:
 
-- После того, как я увидела, что компьютер получил адрес и связность в сети есть, повторно запустила на маршрутизаторе R1 команду ***show ip dhcp binding\***. Картина изменилась, в таблице появились IP-адреса выданные компьютерам (Рис.10).
+Reply from 192.168.1.1: bytes=32 time<1ms TTL=254
+Reply from 192.168.1.1: bytes=32 time<1ms TTL=254
+Reply from 192.168.1.1: bytes=32 time<1ms TTL=254
+Reply from 192.168.1.1: bytes=32 time=1ms TTL=254
 
-Рис.10
+Ping statistics for 192.168.1.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 1ms, Average = 0ms
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv4/show_ip_dhcp_binding_end.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab003_DHCPv4_6_SLAAC/Lab003_DHCPv4/show_ip_dhcp_binding_end.png)
+```
+
+- После того, как я увидел, что компьютер получил адрес и связность в сети есть, повторно запустила на маршрутизаторе R1 команду show ip dhcp binding. Картина изменилась, в таблице появились IP-адреса выданные компьютерам.
+
+```
+R1#show ip dhcp binding 
+IP address       Client-ID/              Lease expiration        Type
+                 Hardware address
+192.168.1.6      00E0.A316.59AA           --                     Automatic
+192.168.1.102    0090.2187.B91A           --                     Automatic
+```
 
 - С помощью команды ***show ip dhcp server statistics\*** проверяем статистику на R1 (Рис.11) и R2 (Рис.12).
 
