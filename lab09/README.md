@@ -82,7 +82,7 @@
 
 #### b. Таблица IP адресов.
 
-Для удобного просмотра подсетей данную таблицу делал в стороннем приложении. [ТАБЛИЦА 3](https://docs.google.com/spreadsheets/d/1Xh_E0TRYzVY-oJdr_Q6afzXw6FiViIgp9RnzAssNLIM/edit?usp=sharing)
+Для удобного просмотра ip адресов данную таблицу делал в стороннем приложении. [ТАБЛИЦА 3](https://docs.google.com/spreadsheets/d/1Xh_E0TRYzVY-oJdr_Q6afzXw6FiViIgp9RnzAssNLIM/edit?usp=sharing)
 
 Таб. 4
 
