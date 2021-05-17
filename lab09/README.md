@@ -10,11 +10,10 @@
 
 ### Ход выполнения:
 
-```
-Для выполнения лабораторной работы использовался эмулятор EVE-NG, терминал GNOME 3.38
-```
 
-#### I. Разработка и документирование адресного пространства для лабораторного стенда.
+Для выполнения лабораторной работы использовался эмулятор EVE-NG, терминал GNOME 3.38
+
+#### 1. Разработка и документирование адресного пространства для лабораторного стенда.
 
 **Используемые сети:**
 
@@ -26,7 +25,7 @@
 |                    | ipv6 | сеть выделенная провайдером. В подразделениях используются сети с префиксом /64. | 2001:AAAA::/48 |
 |                    | ipv6 | сеть для адресов link-local                                  | FE80::/10      |
 
-#### a. Таблица выделенных подсетей.
+#### 1.2 Таблица выделенных подсетей.
 
 Для удобного просмотра подсетей данную таблицу делал в стороннем приложении. [ТАБЛИЦА 1](https://docs.google.com/spreadsheets/d/1sV0p-q8V7yGR3Pjk1xMUrwc2siTIBcI2daprLvBshPI/edit?usp=sharing)
 
@@ -80,7 +79,7 @@
 |                | `302`  | `100.68.0.2/31`  | `100.68.0.0/23`     | `2001:AAAA:BB06:102::/64`  | `2001:AAAA:BB06::/48` | `R21e0/2 - R24e0/0`        |
 |                | `302`  | `192.168.6.0/24` |                     | `2001:AAAA:BB06:192::/64`  | `2001:AAAA:BB06::/48` | `Loopback's`               |
 
-#### b. Таблица IP адресов.
+#### 1.3 Таблица IP адресов.
 
 Для удобного просмотра ip адресов данную таблицу делал в стороннем приложении. [ТАБЛИЦА 3](https://docs.google.com/spreadsheets/d/1Xh_E0TRYzVY-oJdr_Q6afzXw6FiViIgp9RnzAssNLIM/edit?usp=sharing)
 
@@ -263,3 +262,284 @@
 |                |              |               |                |                   | `FE80::21:E0`                  | `FE80::/10`                |                            |
 |                |              | `e0/2`        | `100.68.0.2`   | `100.68.0.2/31`   | `2001:AAAA:BB06:102::2:E2/64`  | `2001:AAAA:BB06:102::/64`  |                            |
 |                |              |               |                |                   | FE80::21:E2                    | FE80::/10                  |                            |
+
+#### 2. Настройка сетевого оборудования.
+
+#### 2.1 Общая настройка сетевого оборудования.
+
+В данном разделе приведу пример базовой настройки устройства:
+
+```
+conf t
+!
+hostname *
+clock timezone MSK 3
+no ip domain-lookup
+enable secret class
+!
+line console 0
+password cisco
+login
+logging synchronous
+exit
+!
+line vty 0 15
+password cisco
+login
+exit
+!
+service password-encryption
+!
+banner motd > Attention! Unauthorized entry is prohibited. Contacts email: ng.vlasov@ya.ru
+>
+!
+exit
+!
+clock set 12:57:00 13 May 2021
+!
+write
+```
+
+Настройки коммутаторов и маршрутизаторов находятся в папке [cfg](https://github.com/darkmikos/otus.ru/tree/master/lab09/cfg). 
+
+#### 2.2 Настройка ip адреса на каждом активном интерфейсе.
+
+По условию лабораторной работы необходимо настроить ipv4 и ipv6 адреса на всех активных интерфейсах сетевых устройств. Перед началом работ необходимо разрешить использование ipv6 (в режиме конфигурации с помощью команды ipv6 unicast-routing).
+
+```
+conf t
+ipv6 unicast-routing
+```
+
+Воспользуюсь таблицами 3,4 в которой содержится план ip адресации для всех интерфейсов и устройств.  Настройки коммутаторов и маршрутизаторов находятся в папке [cfg](https://github.com/darkmikos/otus.ru/tree/master/lab09/cfg).
+
+Пример:
+
+```
+int lo 0
+ ip address 192.168.2.16 255.255.255.255 
+ ipv6 address 2001:AAAA:BB02:192::16/128
+ no shutdown
+ exit
+exit
+!
+conf t
+!
+int e0/0
+ ip address 100.66.0.10 255.255.255.254
+ ipv6 address 2001:AAAA:BB02:110::10:E0/64
+ ipv6 address FE80::16:E0 link-local
+ no shutdown
+ exit
+!
+int e0/1
+ ip address 100.66.0.3 255.255.255.254
+ ipv6 address 2001:AAAA:BB02:102::3:E0/64
+ ipv6 address FE80::16:E1 link-local
+ no shutdown
+ exit
+!
+int e0/2
+ ip address 100.66.0.8 255.255.255.254
+ ipv6 address 2001:AAAA:BB02:108::8:E2/64
+ ipv6 address FE80::16:E2 link-local
+ no shutdown
+ exit
+!
+int e0/3
+ ip address 100.66.0.12 255.255.255.254
+ ipv6 address 2001:AAAA:BB02:112::12:E3/64
+ ipv6 address FE80::16:E3 link-local
+ no shutdown
+ exit
+!
+exit
+!
+write
+```
+
+ Проверить связанность устройств осуществлю с помощью эхо-запросов ipv4 адресу, ipv6 адресу и по ipv6 link-local адресу.
+
+```
+R19#ping 100.65.0.0
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 100.65.0.0, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 1/1/1 ms
+R19#ping 2001:AAAA:BB01:100::E3    
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 2001:AAAA:BB01:100::E3, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 1/1/1 ms
+R19#ping FE80::14:E3 
+Output Interface: Ethernet0/0
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to FE80::14:E3, timeout is 2 seconds:
+Packet sent with a source address of FE80::19:E0%Ethernet0/0
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 1/1/1 ms
+```
+
+#### 2.3 Настройка протокола VRRP.
+
+Для увеличения оказоустойчивости маршрутизаторов R12 и R13, которые являются шлюзом по умолчанию, использовал протокол VRRP. Данный протокол позволяет безшовно перенаправлять трафик в случае выхода из строя одного из маршрутизаторов или обрыва соединения. Включить протокол VRRP можно в режиме конфигурации с помощью команды fhrp version vrrp v3. Пример настройки протокола VRRP на интерфейсе.
+
+```
+conf t
+!
+fhrp version vrrp v3
+!
+interface Ethernet0/0.10
+ description menegment_sw
+ encapsulation dot1Q 10
+ ip address 172.22.1.2 255.255.255.0
+ ipv6 address 2001:AAAA:BB01:172::2/64
+ vrrp 10 address-family ipv4
+  priority 254
+  address 172.22.1.1 primary
+  exit-vrrp
+ vrrp 11 address-family ipv6
+  priority 254
+  address FE80::12:1 primary
+  address 2001:AAAA:BB01:172::1/64
+  exit-vrrp
+ exit
+!
+exit
+```
+
+ Настройки протокола VRRP на R12, R13 находятся в папке [cfg](https://github.com/darkmikos/otus.ru/tree/master/lab09/cfg).
+
+#### 2.4 Настройка VLAN управления на коммутаторах.
+
+На данном этапе лабораторной работы настроил коммутаторы. Настройка заключается в следующем:
+
+Включил использование ipv6.
+
+```
+ipv6 unicast-routing
+```
+
+Включил VLAN.
+
+```
+vlan 10
+ name menegment_sw
+vlan 11
+ name users_subnet_vlan11
+vlan 12
+ name users_subnet_vlan12
+vlan 999
+ name parkinglot
+```
+
+Создал интерфейсы управления. Настроил IPv4 и IPv6 адреса
+
+```
+interface vlan 10
+ ip address 172.22.1.12 255.255.255.0
+ ipv6 address 2001:AAAA:BB01:172::2C/64
+ ipv6 address FE80::c2:10 link-local
+ no shutdown
+ exit
+```
+
+Перевел интерфейсы uplink в режим trunk
+
+```
+ switchport mode trunk
+ switchport trunk allowed vlan 10,11,12
+ switchport trunk encapsulation dot1q
+```
+
+Настроил интерфейсы для конечных устройств (ПК) в режим access с необходимым VLAN
+
+```
+switchport mode access
+switchport access vlan 12
+```
+
+ Настройки коммутаторов находятся в папке [cfg](https://github.com/darkmikos/otus.ru/tree/master/lab09/cfg).
+
+#### 3. Настройка персональных компьютеров VPC в каждом офисе в своем VLAN.
+
+На персональных компьютерах VPCS адреса IPv4 настроил статически. 
+
+```
+VPCS> ip 10.1.0.4/24 10.1.0.1        
+Checking for duplicate address...
+PC1 : 10.1.0.4 255.255.255.0 gateway 10.1.0.1
+```
+
+Адрес IPv6 устанавливается на ПК способом автоматической настройки адреса без отслеживания состояния SLAAC, который позволяет устройству получить свой префикс, длину префикса и адрес шлюза по умолчанию от маршрутизатора IPv6 без помощи DHCPv6-сервера. Пример полученного с помощью SLAAC IPv6 адреса показан на рис.3.
+
+Адрес IPv6 присваивается автоматически с помощью технологии **Stateless Address Autoconfiguration**. SLAAC используется для автоматического получения IP адреса и сетевого префикса узлом, без использования DHCPv6 сервера, или совместно с ним.
+
+```
+VPCS> sh ipv6
+
+NAME              : VPCS[1]
+LINK-LOCAL SCOPE  : fe80::250:79ff:fe66:6801/64
+GLOBAL SCOPE      : 2001:aaaa:bb01:1011:2050:79ff:fe66:6801/64
+DNS               : 
+ROUTER LINK-LAYER : 00:00:5e:00:02:0d
+MAC               : 00:50:79:66:68:01
+LPORT             : 20000
+RHOST:PORT        : 127.0.0.1:30000
+MTU:              : 1500
+```
+
+На персональных компьютерах VPCS филиала в пгт. Чокурдах адреса IPv4 раздаются с помощью DHCP сервера развернутого на маршрутизаторе R28.
+
+```
+VPCS> ip dhcp
+DDORA IP 10.3.1.14/24 GW 10.3.1.1
+
+VPCS> sh ip  
+
+NAME        : VPCS[1]
+IP/MASK     : 10.3.1.14/24
+GATEWAY     : 10.3.1.1
+DNS         : 
+DHCP SERVER : 10.3.1.1
+DHCP LEASE  : 345594, 345600/172800/302400
+DOMAIN NAME : otus-lab.com
+MAC         : 00:50:79:66:68:1f
+LPORT       : 20000
+RHOST:PORT  : 127.0.0.1:30000
+MTU         : 1500
+```
+
+Пример настройки DHCP сервера на маршрутизаторе R28.
+
+```
+ip dhcp excluded-address 10.3.0.1 10.3.0.13
+ ip dhcp excluded-address 10.3.1.1 10.3.1.13
+ ip dhcp pool users_subnet_vlan11
+  network 10.3.0.0 255.255.255.0
+  default-router 10.3.0.1
+  lease 4 00 00
+  domain-name otus-lab.com
+```
+
+Настройки  маршрутизатора R28 находятся в папке [cfg](https://github.com/darkmikos/otus.ru/tree/master/lab09/cfg).
+
+Адресация IPv6 устанавливается на ПК способом SLAAC. Обновить настройки на персональных компьютерах можно с помощью команды ip dhcp -r.
+
+```
+VPCS> ip dhcp -r
+DORA IP 10.3.1.14/24 GW 10.3.1.1
+
+VPCS> sh ipv6
+
+NAME              : VPCS[1]
+LINK-LOCAL SCOPE  : fe80::250:79ff:fe66:681f/64
+GLOBAL SCOPE      : 2001:aaaa:bb03:1012:2050:79ff:fe66:681f/64
+DNS               : 
+ROUTER LINK-LAYER : aa:bb:cc:01:c0:20
+MAC               : 00:50:79:66:68:1f
+LPORT             : 20000
+RHOST:PORT        : 127.0.0.1:30000
+MTU:              : 1500
+```
+
