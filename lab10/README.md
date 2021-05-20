@@ -16,34 +16,11 @@
 4. Выполнить настройку для офиса Лабытнанги маршрута по-умолчанию
 5. План работы и изменения зафиксировать в документации
 
-### Шаги выполнения:
-
-1. [Документирование адресного пространства для лабораторного стенда.](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab005_PBR/README.md#I-документирование-адресного-пространства-для-лабораторного-стенда)
-
-   a. [Таблица выделенных подсетей.](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab005_PBR/README.md#a-таблица-выделенных-подсетей)
-
-   b. [Таблица IP адресов.](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab005_PBR/README.md#b-таблица-ip-адресов)
-
-2. [Настройка сетевого оборудования.](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab005_PBR/README.md#II-настройка-сетевого-оборудования)
-
-   a. [Настройка маршрута по умолчанию для офиса Лабытнанги.](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab005_PBR/README.md#a-настройка-маршрута-по-умолчанию-для-офиса-лабытнанги)
-
-   b. [Настройка маршрута по умолчанию для сетей офиса Чокурдах на роутерах Триады.](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab005_PBR/README.md#b-настройка-маршрута-по-умолчанию-для-сетей-офиса-чокурдах-на-роутерах-триады)
-
-   c. [Распределение трафика между двумя линками с провайдером.](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab005_PBR/README.md#c-распределение-трафика-между-двумя-линками-с-провайдером)
-
-   d. [Настройка отслеживания линка через технологию IP SLA.](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab005_PBR/README.md#c-настройка-отслеживания-линка-через-технологию-ip-sla)
-
-3. [Проверка работоспособности системы.](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab005_PBR/README.md#III-проверка-работоспособности-системы)
-
-4. [Итоговая схема.](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab005_PBR/README.md#IV-итоговая-схема)
-
 ### Ход выполнения:
 
-```
 Документация оформлена на github, использован markdown.
 Для выполнения лабораторной работы использовался эмулятор EVE-NG, терминал Gnome 3.38.
-```
+
 
 #### 1. Документирование адресного пространства для лабораторного стенда.
 
@@ -186,7 +163,7 @@ R26:
 conf t
 !
 ip route 100.67.0.12 255.255.255.254 100.67.0.8 name toLabytnangi
-ip route 100.3.0.0 255.255.254.0 10.5.0.17 name toChokurdah
+ip route 10.3.0.0 255.255.254.0 100.67.0.17 name toSubnetChokurdah
 !
 ipv6 route 2001:AAAA:BB03::/48 2001:AAAA:BB05:116::17:E0 name toChokurdah
 ipv6 route 2001:AAAA:BB05:112::/64 2001:AAAA:BB05:108::8:E2 name toLabytnangi
@@ -286,86 +263,115 @@ exit
 
 #### 3. Проверка работоспособности системы.
 
-На персональных компьютерах адресация IPv4 раздается DHCP-сервером. DHCP-сервер поднят на роутере R28, Конфигурация находится в файле ***"R28_int.txt"\***, который расположен в папке [configs](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab005_PBR/configs).
+На персональных компьютерах VPC30, VPC31  IPv4 адреса присваиваются автоматически по средствам DHCP-сервера. DHCP-сервер развернут на маршрутизаторе R28. Конфигурация маршрутизатора R28 находятся в папке [cfg](https://github.com/darkmikos/otus.ru/tree/master/lab10/cfg).
 
-Для проверки прохождения трафика, как конечный хост, использую ip-адрес роутера R27 - 10.5.0.13. С помощью команды ***trace 10.5.0.13 -P 1\*** проверила трассировку до R27 c компьютеров VPC30 (рис.2) и VPC31 (рис.3).
+Для проверки прохождения трафика использую ip-адрес роутера R27 - 100.67.0.13. С помощью команды trace 10.5.0.13 -P 1 проведу трассировку маршрута до R27 c компьютеров:
 
-Рисунок 2.
+VPC30
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab005_PBR/Trace_VPC30_1.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab005_PBR/Trace_VPC30_1.png)
+```
+VPCS> trace 100.67.0.13 -P 1
+trace to 100.67.0.13, 8 hops max (ICMP), press Ctrl+C to stop
+ 1   10.3.0.1   0.884 ms  0.370 ms  0.319 ms
+ 2   100.67.0.16   0.531 ms  0.400 ms  0.431 ms
+ 3   100.67.0.8   0.680 ms  0.508 ms  0.468 ms
+ 4   100.67.0.13   0.974 ms  0.654 ms  0.559 ms
+```
 
-Рисунок 3.
+VPC31
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab005_PBR/Trace_VPC31_1.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab005_PBR/Trace_VPC31_1.png)
+```
+VPCS> trace 100.67.0.13 -P 1
+trace to 100.67.0.13, 8 hops max (ICMP), press Ctrl+C to stop
+ 1   10.3.1.1   0.906 ms  0.824 ms  0.945 ms
+ 2   100.67.0.10   1.483 ms  1.376 ms  1.304 ms
+ 3   100.67.0.13   1.654 ms  2.767 ms  3.082 ms
+```
 
-Как видно из вышеприведенных рисунков, трафик до R27 разделился на два маршрута.
+Исходя из трасировки маршрутов с VPC30, VPC31 видим, что трафик до R27 разделился на два маршрута.
 
-Теперь проверю будет ли доходить трафик, если будет недоступен интерфейс e0/3 на роутере R25 ip адрес которого 10.5.0.10. Для доставерности запустила команду ping 10.5.0.10 на роутере R28. Убедилась, что интерфейс не доступен.
+Теперь проверю будет ли ходить трафик, если будет недоступен интерфейс e0/3 на роутере R25 ip адрес которого 100.67.0.10. 
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab005_PBR/Ping_R25e0_3_down.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab005_PBR/Ping_R25e0_3_down.png)
+Для проверки недоступности интрефейса использую эхо-запрос с маршрутизатора  R28 на ip адрес 100.67.0.10
 
-Далее повторила команду ***trace 10.5.0.13 -P 1\*** и проверила трассировку до R27 c компьютеров VPC30 (рис.4) и VPC31 (рис.5).
+```
+R28#ping 100.67.0.10
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 100.67.0.10, timeout is 2 seconds:
+.....
+Success rate is 0 percent (0/5)
+```
 
-Рисунок 4.
+Далее повторим команду trace 100.67.0.13 -P 1 с VPC30, VPC31 до R27 c компьютеров VPC30 (рис.4) и  (рис.5).
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab005_PBR/Trace_VPC30_R25e0_3_down.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab005_PBR/Trace_VPC30_R25e0_3_down.png)
+VPC30
 
-Рисунок 5.
+```
+VPCS> trace 100.67.0.13 -P 1
+trace to 100.67.0.13, 8 hops max (ICMP), press Ctrl+C to stop
+ 1   10.3.0.1   0.924 ms  1.054 ms  1.150 ms
+ 2   100.67.0.16   1.601 ms  1.139 ms  1.543 ms
+ 3   100.67.0.8   1.885 ms  1.641 ms  2.187 ms
+ 4   100.67.0.13   1.603 ms  4.141 ms  2.350 ms
+```
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab005_PBR/Trace_VPC31_R25e0_3_down.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab005_PBR/Trace_VPC31_R25e0_3_down.png)
+VPC31
 
-Вижу, что весь трафик пошел через интерфейс e0/1 маршрутизатора R26. Отслеживание линка через технологию IP SLA работает.
+```
+VPCS> trace 100.67.0.13 -P 1
+trace to 100.67.0.13, 8 hops max (ICMP), press Ctrl+C to stop
+ 1   10.3.1.1   0.884 ms  0.774 ms  0.683 ms
+ 2   100.67.0.16   1.042 ms  0.785 ms  0.777 ms
+ 3   100.67.0.8   1.554 ms  1.122 ms  1.310 ms
+ 4   100.67.0.13   1.882 ms  1.320 ms  1.125 ms
+```
 
-Аналогичные действия провожу с интерфейсом e0/1 на маршрутизаторе R26, убедилась, что интерфейс не доступен.
+Видим, что весь трафик пошел через интерфейс e0/1 маршрутизатора R26. Отслеживание линка через технологию IP SLA работает.
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab005_PBR/Ping_R26e0_1_down.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab005_PBR/Ping_R26e0_1_down.png)
+Теперь проведу аналогичные действия и проверю будет ли ходить трафик, если будет недоступен интерфейс e0/1 на роутере R26 ip адрес которого 100.67.0.16. 
 
-Запустила трассировку с компьютеров VPC30 (рис.6) и VPC31 (рис.7).
+Для проверки недоступности интрефейса использую эхо-запрос с маршрутизатора  R28 на ip адрес 100.67.0.16
 
-Рисунок 6.
+```
+R28#ping 100.67.0.16
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 100.67.0.16, timeout is 2 seconds:
+.....
+Success rate is 0 percent (0/5)
+```
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab005_PBR/Trace_VPC30_R26e0_1_down.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab005_PBR/Trace_VPC30_R26e0_1_down.png)
+Для проверки прохождения трафика использую ip-адрес роутера R27 - 100.67.0.13. С помощью команды trace 10.5.0.13 -P 1 проведу трассировку маршрута до R27 c компьютеров:
 
-Рисунок 7.
+VPC30
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab005_PBR/Trace_VPC31_R26e0_1_down.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab005_PBR/Trace_VPC31_R26e0_1_down.png)
+```
+VPCS> trace 100.67.0.13 -P 1
+trace to 100.67.0.13, 8 hops max (ICMP), press Ctrl+C to stop
+ 1   10.3.0.1   0.652 ms  0.458 ms  0.550 ms
+ 2   100.67.0.10   0.904 ms  0.839 ms  1.010 ms
+ 3   100.67.0.13   1.117 ms  1.167 ms  1.161 ms
+
+```
+
+VPC31
+
+```
+VPCS> trace 100.67.0.13 -P 1
+trace to 100.67.0.13, 8 hops max (ICMP), press Ctrl+C to stop
+ 1   10.3.1.1   1.310 ms  1.075 ms  0.783 ms
+ 2   100.67.0.10   1.549 ms  1.064 ms  0.545 ms
+ 3   100.67.0.13   0.767 ms  0.605 ms  0.583 ms
+```
 
 Наблюдаем, что весь трафик пошел через интерфейс e0/3 маршрутизатора R25.
 
 **Из вышеприведенных примеров вижу, что отслеживание линка через технологию IP SLA работает!**
 
-Адресация IPv6 устанавливается на ПК способом автоматической настройки адреса без отслеживания состояния SLAAC, который позволяет устройству получить свой префикс, длину префикса и адрес шлюза по умолчанию от маршрутизатора IPv6 без помощи DHCPv6-сервера.
 
-Для проверки прохождения трафика, как конечный хост, так же использую ipv6-адрес роутера R27 - 2001:AAAA:BB05:112::13:E0. С помощью команды ***trace 2001:AAAA:BB05:112::13:E0\*** проверила трассировку до R27 c компьютеров VPC30 (рис.8) и VPC31 (рис.9).
 
-Рисунок 8.
+#### 4. Итоговая схема.
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab005_PBR/Trace_VPC30_IPV6_1.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab005_PBR/Trace_VPC30_IPV6_1.png)
+На рисунке 1 размещены используемые сети, IPv4 и IPv6 адреса маршрутизаторов, коммутаторов и персональных компьютеров а так же испльзуемые VLAN.
 
-Рисунок 9.
+![Рисунок 1](https://github.com/darkmikos/otus.ru/blob/master/lab10/%D1%81onnection_diagram.png)
 
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab005_PBR/Trace_VPC31_IPV6_1.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab005_PBR/Trace_VPC31_IPV6_1.png)
-
-В данном случае распределения трафика нет, так как IOS оборудования в лабораторном стенде не поддерживает данный функционал. Конфигурация распределения трафика находится в файле ***"R28_int.txt"\***, который расположен в папке [configs](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab005_PBR/configs).
-
-Теперь проверю будет ли доходить трафик, если будет недоступен интерфейс e0/1 на роутере R26 ipv6 адрес которого 2001:AAAA:BB05:116::16:E1. Так же С помощью команды ***trace 2001:AAAA:BB05:112::13:E0\*** проверила трассировку до R27 c компьютеров VPC30 (рис.10) и VPC31 (рис.11).
-
-Рисунок 10.
-
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab005_PBR/Trace_VPC30_R26e0_IPV6_1_down.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab005_PBR/Trace_VPC30_R26e0_IPV6_1_down.png)
-
-Рисунок 11.
-
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab005_PBR/Trace_VPC31_R26e0_IPV6_1_down.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab005_PBR/Trace_VPC31_R26e0_IPV6_1_down.png)
-
-Трафик изменил свое направление.
-
-**Из вышеприведенных примеров вижу, что отслеживание линка через технологию IP SLA для IPV6 так же работает!**
-
-#### ***IV. Итоговая схема.\***
-
-На рис.5 размещены используемые сети, IPv4 и IPv6 адреса маршрутизаторов, коммутаторов и персональных компьютеров а так же испльзуемые VLAN.
-
-Рисунок 5.
-
-[![img](https://github.com/wiseowl-lna/net_engineer/raw/master/labs/Lab005_PBR/Shema_lab5.png)](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab005_PBR/Shema_lab5.png)
