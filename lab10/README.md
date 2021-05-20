@@ -1,3 +1,5 @@
+
+
 ## **Маршрутизация на основе политик (PBR)**
 
 ### Цель:
@@ -108,7 +110,7 @@
 |              | `VPC31`    |              | `DHCP`         | `10.3.1.0/24`     | `autoconfig`                   | `2001:AAAA:BB03:1012::/64` |                            |
 | `Лабытнанги` |            |              |                |                   |                                |                            |                            |
 |              | `R27`      | `Lo0`        | `192.168.4.27` | `192.168.4.27/32` | `2001:AAAA:BB04:192::27/128`   | `2001:AAAA:BB04:192::/64`  | `Loopback R27`             |
-|              |            | `e0/0`       | `100.67.0.13`  | `100.67.0.12/31`  | `2001:AAAA:BB05:112::13:E0/64` | `2001:AAAA:BB05:116::/64`  |                            |
+|              |            | `e0/0`       | `100.67.0.13`  | `100.67.0.12/31`  | `2001:AAAA:BB05:112::13:E0/64` | `2001:AAAA:BB05:112::/64`  |                            |
 |              |            |              |                |                   | `FE80::27:E0`                  | `FE80::/10`                |                            |
 | `Триада`     |            |              |                |                   |                                |                            |                            |
 |              | `R23`      | `Lo0`        | `192.168.5.23` | `192.168.5.23/32` | `2001:AAAA:BB05:192::23/128`   | `2001:AAAA:BB05:192::/64`  | `Loopback R23`             |
@@ -150,176 +152,125 @@
 
 #### 2.1 Настройка маршрута по умолчанию для офиса Лабытнанги.
 
-В данном разделе показано как настроить маршрут по умолчанию. Файл с настройкой маршрута по умолчанию находится в папке [configs](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab005_PBR/configs) в файле **R27_int.txt**.
+В данном разделе настроил маршрут по умолчанию на R27. 
 
-------
-
-```
-conf terminal
-!
- ip route 0.0.0.0 0.0.0.0 10.5.0.12 name R25_e_0_1
- ipv6 route ::/0 2001:AAAA:BB05:112::12:E1 name R25_e_0_1
-!
-```
-
-------
-
-#### b. Настройка маршрута по умолчанию для сетей офиса Чокурдах на роутерах Триады.
-
-Выбрала для проверки направления трасс маршрутов маршрутизатор R27 в Лабытнангах. Для того, чтобы проверить трассировку до данного маршрутизатора необходимо на роутерах R25 и R26 прописать статические маршруты. Файлы с настройками на устройствах находятся в папке [configs](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab005_PBR/configs) в файлах **--_int.txt**. Первые символы в названии файлов соответствуют именам сетевых устройств.
-
-------
 
 ```
-На маршрутизаторе R25
-
-conf terminal
+conf t
 !
- ip route 100.3.0.0 255.255.254.0 10.5.0.11 name To_Net_Chokurdah
- ip route 100.3.0.0 255.255.254.0 10.5.0.9 150
-!
- ipv6 route 2001:AAAA:BB03::/48 2001:AAAA:BB05:108::9:E2 150 name To_Net_Chokurdah
- ipv6 route 2001:AAAA:BB03::/48 2001:AAAA:BB05:110::11:E1 name To_Net_Chokurdah
-!
-
-На маршрутизаторе R26
-
-conf terminal
-!
- ip route 10.5.0.12 255.255.255.254 10.5.0.8 name To_Labytnangi
- ip route 100.3.0.0 255.255.254.0 10.5.0.17 name To_Chokurdah
-!
- ipv6 route 2001:AAAA:BB03::/48 2001:AAAA:BB05:116::17:E0 name To_Chokurdah
- ipv6 route 2001:AAAA:BB05:112::/64 2001:AAAA:BB05:108::8:E2 name To_Labytnangi
-!
+ip route 0.0.0.0 0.0.0.0 100.67.0.12 name R25_e0/1
+ipv6 route ::/0 2001:AAAA:BB05:112::12:E1 name R25_e0/1
 ```
+Настройка маршрутизатора R27 находятся в папке [cfg](https://github.com/darkmikos/otus.ru/tree/master/lab10/cfg).
 
-------
 
-#### c. Распределение трафика между двумя линками с провайдером.
+#### 2.2 Настройка маршрута для сетей офиса Чокурдах на маршрутизаторах Триады.
 
-Для того, что бы распределить трафик между двумя линками необходимо создать access-list с разрешениями для подсетей и route-map с правилами. Настройки ACL и PBR находятся в папке [configs](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab005_PBR/configs) в файлt **R28_int.txt**.
+Для доступа с R27 в Лабытнангах до сетей в офисах Чокурдах. Необходимо на маршрутизаторах провайдера Триада R25 и R26 прописать статические маршруты в сторону маршрутизатора в Чокурдах. 
 
-------
+R25:
+
 
 ```
-Создала ACL:
+conf t
+!
+ip route 10.3.0.0 255.255.254.0 100.67.0.11 name toSubnetChokurdah
+ip route 10.3.0.0 255.255.254.0 100.67.0.9 113 name toSubnetChokurdahR26
+!
+ipv6 route 2001:AAAA:BB03::/48 2001:AAAA:BB05:110::11:E1 name toSubnetChokurdah
+ipv6 route 2001:AAAA:BB03::/48 2001:AAAA:BB05:108::9:E2 113 name toSubnetChokurdahR26
+```
+R26:
 
+```
+conf t
 !
-conf terminal
+ip route 100.67.0.12 255.255.255.254 100.67.0.8 name toLabytnangi
+ip route 100.3.0.0 255.255.254.0 10.5.0.17 name toChokurdah
 !
- ip access-list extended ACL-VL11
-  permit ip 100.3.0.0 0.0.0.255 any
+ipv6 route 2001:AAAA:BB03::/48 2001:AAAA:BB05:116::17:E0 name toChokurdah
+ipv6 route 2001:AAAA:BB05:112::/64 2001:AAAA:BB05:108::8:E2 name toLabytnangi
+```
+
+Настройка маршрутизатора R25, R26 находятся в папке [cfg](https://github.com/darkmikos/otus.ru/tree/master/lab10/cfg).
+
+
+#### 2.3 Распределение трафика между двумя линками с провайдером.
+
+Для распределия трафика между двумя интерфейсами подключенными к маршрутизаторам R25, R26 провайдера Триада  необходимо создать access-list и route-map с правилами для подсетей офиса Чокурдах, а также включить правила на субинтерфейсах маршрутизатора R28. 
+
+Создание ACL R28
+
+```
+conf t
+!
+ ip access-list extended ACL-SUBNET11
+  permit ip 10.3.0.0 0.0.0.255 any
   exit
- ip access-list extended ACL-VL12
-  permit ip 100.3.1.0 0.0.0.255 any
+ ip access-list extended ACL-SUBNET12
+  permit ip 10.3.1.0 0.0.0.255 any
   exit
- ipv6 access-list ACL-VL11-IPV6
-  permit ipv6 2001:AAAA:BB03:1011::/64 any
-  exit
- ipv6 access-list ACL-VL12-IPV6
-  permit ipv6 2001:AAAA:BB03:1012::/64 any
-  exit
-exit
-!
-
-Создала маршрутные карты route-map:
-
-!
-conf terminal
-route-map PBR_TRAFFIC permit 10
- match ip address ACL-VL11
- set ip next-hop verify-availability 10.5.0.16 10 track 1
- set ip next-hop verify-availability 10.5.0.10 20 track 2
- exit
-exit
-!
-conf terminal
-route-map PBR_TRAFFIC permit 20
- match ip address ACL-VL12
- set ip next-hop verify-availability 10.5.0.10 10 track 2
- set ip next-hop verify-availability 10.5.0.16 20 track 1
- exit
-exit
-!
-conf terminal
-route-map PBR_TRAFFIC permit 30
- match ipv6 address ACL-VL11-IPV6
- set ipv6 next-hop 2001:AAAA:BB05:116::16:E1/64 10 track 3
- set ipv6 next-hop 2001:AAAA:BB05:110::10:E3/64 20 track 4
- exit
-exit
-!
-conf terminal
-route-map PBR_TRAFFIC permit 40
- match ipv6 address ACL-VL12-IPV6
- set ipv6 next-hop 2001:AAAA:BB05:110::10:E3/64 10 track 4
- set ipv6 next-hop 2001:AAAA:BB05:116::16:E1/64 20 track 3
- exit
-exit
-!
 ```
 
-------
+Создание маршрутных карт route-map R28
 
-Для того, что бы правила route-map начали работать необходимо настроить политики на интерфейсе.
-
-------
 
 ```
-conf terminal
+conf t
+!
+route-map PBR_RULE permit 10
+ match ip address ACL-SUBNET11
+ set ip next-hop verify-availability 100.67.0.16 10 track 1
+ set ip next-hop verify-availability 100.67.0.10 20 track 2
+ exit
+!
+route-map PBR_RULE permit 20
+ match ip address ACL-SUBNET12
+ set ip next-hop verify-availability 100.67.0.10 10 track 2
+ set ip next-hop verify-availability 100.67.0.16 20 track 1
+ exit
+```
+
+Что бы включить правила route-map необходимо настроить политики на субинтерфейсах R28.
+
+
+```
+conf t
 !
 interface Ethernet0/2.11
- ip policy route-map PBR_TRAFFIC
+ ip policy route-map PBR_RULE
  exit
 interface Ethernet0/2.12
- ip policy route-map PBR_TRAFFIC
+ ip policy route-map PBR_RULE
  exit 
-!
 ```
 
-------
+Настройка маршрутизатора R28 находятся в папке [cfg](https://github.com/darkmikos/otus.ru/tree/master/lab10/cfg).
 
 #### d. Настройка отслеживания линка через технологию IP SLA.
 
-На данном этапе лабораторной работы наобходимо настроить отслеживание линков с помощью технологии IP SLA. Для этой задачи использовала протокол ICMP. Пинги запускаются каждые 5 секунд с маршрутизатора R28 на ip адреса интерфейсов маршрутизаторов R25 и R26 (настройки ниже).
+На данном этапе лабораторной работы наобходимо настроить отслеживание линков с помощью технологии IP SLA. Для этой задачи использовал протокол ICMP. Пинги запускаются каждые 5 секунд с маршрутизатора R28 на ip адреса интерфейсов маршрутизаторов R25 и R26.
 
-------
 
 ```
-conf terminal
+conf t
 !
 ip sla 1
- icmp-echo 10.5.0.16 source-ip 10.5.0.17
+ icmp-echo 100.67.0.16 source-ip 100.67.0.17
  frequency 5
 exit
 ip sla schedule 1 life forever start-time now
 !
 ip sla 2
- icmp-echo 10.5.0.10 source-ip 10.5.0.11
+ icmp-echo 100.67.0.10 source-ip 100.67.0.11
  frequency 5
 exit
 ip sla schedule 2 life forever start-time now
 !
-ip sla 3
- icmp-echo 2001:AAAA:BB05:116::16:E1 source-ip 2001:AAAA:BB05:116::17:E0
- frequency 5
-exit
-ip sla schedule 3 life forever start-time now
-!
-ip sla 4
- icmp-echo 2001:AAAA:BB05:116::10:E3 source-ip 2001:AAAA:BB05:116::11:E1
- frequency 5
-exit
-ip sla schedule 4 life forever start-time now
-!
 ```
 
-------
 
 Для связи route-map и ip sla используются track.
-
-------
 
 ```
 !
@@ -327,18 +278,13 @@ track 1 ip sla 1 reachability
 exit
 track 2 ip sla 2 reachability
 exit
-track 3 ip sla 3 reachability
-exit
-track 4 ip sla 4 reachability
-exit
-!
 ```
 
-------
+Настройка маршрутизатора R28 находятся в папке [cfg](https://github.com/darkmikos/otus.ru/tree/master/lab10/cfg).
 
 Настройки оборудования выполнены. Следующий шаг - проверка выполненных работ.
 
-#### ***III. Проверка работоспособности системы.\***
+#### 3. Проверка работоспособности системы.
 
 На персональных компьютерах адресация IPv4 раздается DHCP-сервером. DHCP-сервер поднят на роутере R28, Конфигурация находится в файле ***"R28_int.txt"\***, который расположен в папке [configs](https://github.com/wiseowl-lna/net_engineer/blob/master/labs/Lab005_PBR/configs).
 
